@@ -11,7 +11,7 @@ backtrace:
 	tr ' ' '\n' | /home/jim/.arduino15/packages/esp32/tools/xtensa-esp32-elf-gcc/*/bin/xtensa-esp32-elf-addr2line -f -i -e ${BUILD_DIR}/${MAIN_NAME}.elf
 	
 CHIP=esp32
-OTA_ADDR=192.168.4.154
+OTA_ADDR=192.168.4.108
 IGNORE_STATE=1
 
 include ${HOME}/Arduino/libraries/makeEspArduino/makeEspArduino.mk
@@ -20,12 +20,12 @@ fixtty:
 	stty -F ${UPLOAD_PORT} -hupcl -crtscts -echo raw  ${MONITOR_SPEED}
 
 cat:	fixtty
-	cat ${UPLOAD_PORT}
+	cat ${UPLOAD_PORT} | tee -a cat.txt
 
 socat:  
 	socat udp-recv:9000 - 
 mocat:
-	mosquitto_sub -h 192.168.4.1 -t "espGasStove/#" -F "%I %t %p"   
+	mosquitto_sub -h 192.168.5.1 -t "espGasStove/#" -F "%I %t %p"   | tee -a mocat.txt
 
 curl: ${BUILD_DIR}/${MAIN_NAME}.bin
 	curl -v --limit-rate 10k --progress-bar -F "image=@${BUILD_DIR}/${MAIN_NAME}.bin" ${OTA_ADDR}/update  > /dev/null
