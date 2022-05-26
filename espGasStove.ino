@@ -1,7 +1,6 @@
 #include "jimlib.h"
 
 JStuff j;
-#define OUT j.out
 
 struct {
 	int led = getLedPin(); 
@@ -12,19 +11,22 @@ struct {
 TempSensor temp(pins.temp);
 PwmChannel pwm(pins.pwm, 50, 0, 2);
 Timer sec(2000), minute(60000), blink(100);
-float setTemp = 19.5, hist =0.15;
-float lastTemp = 0.0;
-int useLED = 0;
+
+CLI_VARIABLE_FLOAT(setTemp, 19.5);
+CLI_VARIABLE_FLOAT(hist, 0.15);
+CLI_VARIABLE_INT(useLED, 0);
 
 string testHook("hi");
+float lastTemp = 0.0;
 
 void setup() {
 	j.begin();
-	j.cli.hookVar("hook", &testHook);
-	j.cli.hookVar("temp", &setTemp);
-	j.cli.hookVar("hist", &hist);
-	j.cli.hookVar("led", &useLED);
-	j.cli.on("pwm ([0-9]+)", [](smatch m){ pwm.setMs(atoi(m.str(1).c_str()));});
+	j.cli.hookVar("HOOK", &testHook);
+	j.cli.on("PWM ([0-9]+)", [](const char *, smatch m){ 
+		if (m.size() > 1) 
+			pwm.setMs(atoi(m.str(1).c_str()));
+		return strfmt("%f", pwm.get()); 
+	});
 	j.cli.on("MINUTE", [](){ minute.alarmNow(); });
 	minute.alarmNow();	
 }
@@ -33,7 +35,8 @@ void loop() {
 	j.run();
 
 	if (blink.tick()) { 
-		//OUT("%6.3f SET: %6.3f, HIST: %6.3f LED: %d", temp.readTemp(), setTemp, hist, useLED);
+		//OUT("%08d %6.3f SET: %6.3f, HIST: %6.3f LED: %d", 
+		//millis(), temp.readTemp(), (float)setTemp, (float)hist, (int)useLED);
 		if (useLED) 
 			digitalToggle(pins.led);
 		else
