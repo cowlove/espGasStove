@@ -46,4 +46,5 @@ void loop() {
 		lastTemp = t;
 		OUT("temp %6.3f pwm %.3f", t, pwm.get());
 	}
+	delay(10);  
 }
