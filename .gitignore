@@ -1,0 +1,4 @@
+*.txt
+jimlib.h
+*_csim
+csim_*
